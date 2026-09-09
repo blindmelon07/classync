@@ -19,6 +19,13 @@ return Application::configure(basePath: dirname(__DIR__))
         // crashes trying to route() to a 'login' name that doesn't exist,
         // instead of just returning 401 JSON.
         $middleware->redirectGuestsTo(null);
+
+        // Laravel 11+ no longer adds throttle:api to the api group by
+        // default -- fine on a LAN only you can reach, not fine once this
+        // is on the public internet. 60 req/min per IP (or per user once
+        // authenticated) for everything; register/login get a much
+        // stricter limit defined in routes/api.php.
+        $middleware->throttleApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -8,9 +8,13 @@ use App\Http\Controllers\Api\PolicyController;
 use Illuminate\Support\Facades\Route;
 
 // Public -- the one network call the app makes before everything else goes
-// local (ARCHITECTURE.md Ch.4).
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+// local (ARCHITECTURE.md Ch.4). Throttled harder than the rest of the API:
+// once this is on the public internet, these are exactly the endpoints
+// bots hit for spam registrations and PIN/password brute-forcing.
+Route::middleware('throttle:6,1')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+});
 
 // Everything else requires the Sanctum token cached on first login.
 Route::middleware('auth:sanctum')->group(function () {
