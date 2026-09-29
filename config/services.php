@@ -28,6 +28,17 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'google' => [
+        // The *Web* OAuth client ID. ID tokens from the app are issued with
+        // this as their `aud`; anything else is rejected.
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+
+        // Optional Google Workspace domain(s), comma-separated (e.g.
+        // "myschool.edu,students.myschool.edu"). When set, only accounts
+        // whose `hd` claim matches one of them may sign in.
+        'allowed_domain' => env('GOOGLE_ALLOWED_DOMAIN'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

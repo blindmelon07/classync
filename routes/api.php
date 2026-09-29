@@ -16,6 +16,11 @@ Route::middleware('throttle:6,1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 });
 
+// Google sign-in. Looser than password login since there is nothing to
+// brute-force (the ID token is signed by Google). The limit is per IP, so a
+// class signing in together from one school network shares it.
+Route::middleware('throttle:20,1')->post('/auth/google', [AuthController::class, 'google']);
+
 // Everything else requires the Sanctum token cached on first login.
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
