@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\ClassRoom;
 use App\Models\TeacherEmail;
 use App\Models\User;
+use App\Services\Roster;
 use Firebase\JWT\JWT;
 use Google\Auth\Cache\MemoryCacheItemPool;
 use Google\Client as GoogleClient;
@@ -130,6 +132,32 @@ class GoogleAuthTest extends TestCase
             'role' => 'student',
             'password' => null,
         ]);
+    }
+
+    public function test_admin_email_signs_in_as_teacher_with_admin_flag(): void
+    {
+        config(['services.google.admin_emails' => 'other@school.edu, Student@Example.com']);
+
+        $this->postJson('/api/auth/google', ['id_token' => $this->idToken()])
+            ->assertOk()
+            ->assertJsonPath('user.role', 'teacher')
+            ->assertJsonPath('user.is_admin', true);
+    }
+
+    public function test_student_enrolled_before_signing_in_is_linked_and_stays_in_the_class(): void
+    {
+        $teacher = User::factory()->teacher()->create();
+        $class = ClassRoom::create(['teacher_id' => $teacher->id, 'name' => 'Algebra 7A', 'join_code' => 'ABC123']);
+        app(Roster::class)->enrollStudents($class, ['student@example.com']);
+
+        $this->postJson('/api/auth/google', ['id_token' => $this->idToken()])
+            ->assertOk()
+            ->assertJsonPath('user.name', 'Sam Student')
+            ->assertJsonPath('user.role', 'student')
+            ->assertJsonPath('user.is_admin', false);
+
+        $this->assertDatabaseCount('users', 2);
+        $this->assertSame(['Sam Student'], $class->students()->pluck('name')->all());
     }
 
     public function test_token_lasts_about_a_semester(): void

@@ -30,6 +30,25 @@ class User extends Authenticatable
         return $this->role === 'student';
     }
 
+    /**
+     * Admins are the ADMIN_EMAILS in .env, checked on every request so
+     * removing an email takes effect immediately.
+     */
+    public function isAdmin(): bool
+    {
+        return static::isAdminEmail($this->email);
+    }
+
+    public static function isAdminEmail(string $email): bool
+    {
+        $admins = array_map(
+            fn (string $admin) => TeacherEmail::normalize($admin),
+            explode(',', (string) config('services.google.admin_emails')),
+        );
+
+        return in_array(TeacherEmail::normalize($email), array_filter($admins), true);
+    }
+
     /** Classes this user teaches. */
     public function teachingClasses(): HasMany
     {

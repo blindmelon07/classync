@@ -145,7 +145,8 @@ class AuthController extends Controller
         $googleId = (string) $claims['sub'];
         $email = TeacherEmail::normalize($claims['email']);
         $name = filled($claims['name'] ?? null) ? $claims['name'] : $email;
-        $role = TeacherEmail::isTeacher($email) ? 'teacher' : 'student';
+        // Admins sign in as teachers: their phone must never lock.
+        $role = TeacherEmail::isTeacher($email) || User::isAdminEmail($email) ? 'teacher' : 'student';
 
         $user = DB::transaction(function () use ($googleId, $email, $name, $role) {
             $user = User::where('google_id', $googleId)->first();
@@ -211,6 +212,7 @@ class AuthController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'role' => $user->role,
+            'is_admin' => $user->isAdmin(),
         ];
     }
 }

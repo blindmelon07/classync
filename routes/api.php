@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlockEventController;
 use App\Http\Controllers\Api\ClassRoomController;
@@ -38,4 +39,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/classes/{class}/sessions/active', [ClassSessionController::class, 'active']);
     Route::post('/sessions/{session}/end', [ClassSessionController::class, 'end']);
     Route::post('/sessions/{session}/block-events', [BlockEventController::class, 'store']);
+
+    // The app's Admin screens -- only the ADMIN_EMAILS in .env.
+    Route::middleware('admin')->prefix('admin')->group(function () {
+        Route::get('/teachers', [AdminController::class, 'teachers']);
+        Route::post('/teachers', [AdminController::class, 'addTeachers']);
+        Route::delete('/teachers/{email}', [AdminController::class, 'removeTeacher']);
+
+        Route::get('/classes', [AdminController::class, 'classes']);
+        Route::get('/classes/{class}/students', [AdminController::class, 'students']);
+        Route::post('/classes/{class}/students', [AdminController::class, 'enroll']);
+        Route::delete('/classes/{class}/students/{student}', [AdminController::class, 'unenroll']);
+    });
 });

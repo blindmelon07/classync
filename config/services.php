@@ -37,6 +37,11 @@ return [
         // "myschool.edu,students.myschool.edu"). When set, only accounts
         // whose `hd` claim matches one of them may sign in.
         'allowed_domain' => env('GOOGLE_ALLOWED_DOMAIN'),
+
+        // Comma-separated emails that may use the admin screens in the app
+        // (manage the teacher list and class rosters). Admins sign in as
+        // teachers, so their phone never locks.
+        'admin_emails' => env('ADMIN_EMAILS'),
     ],
 
     'slack' => [

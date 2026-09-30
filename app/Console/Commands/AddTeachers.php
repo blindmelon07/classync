@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\TeacherEmail;
+use App\Services\Roster;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -24,28 +24,14 @@ class AddTeachers extends Command
      */
     protected function addEmails(array $emails): int
     {
-        $added = 0;
-        $existing = 0;
-        $invalid = [];
+        $result = app(Roster::class)->addTeachers($emails);
 
-        foreach ($emails as $email) {
-            $email = TeacherEmail::normalize($email);
+        $this->info("Added {$result['added']} teacher email(s); {$result['existing']} already on the list.");
 
-            if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $invalid[] = $email;
-
-                continue;
-            }
-
-            TeacherEmail::firstOrCreate(['email' => $email])->wasRecentlyCreated ? $added++ : $existing++;
-        }
-
-        $this->info("Added {$added} teacher email(s); {$existing} already on the list.");
-
-        foreach ($invalid as $email) {
+        foreach ($result['invalid'] as $email) {
             $this->warn("Skipped invalid email: {$email}");
         }
 
-        return $invalid === [] ? self::SUCCESS : self::FAILURE;
+        return $result['invalid'] === [] ? self::SUCCESS : self::FAILURE;
     }
 }
